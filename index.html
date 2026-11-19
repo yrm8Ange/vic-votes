@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voting tool — Bendigo West &amp; Northern Victoria 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6f3ec;--card:#fff;--ink:#16181d;--muted:#6a6e78;--line:#dcd7cb;--accent:#5b2bd6;--warn:#b5481a;--warnbg:#fdf0e7;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;font-size:16px;line-height:1.4}
+button{font:inherit;color:inherit;cursor:pointer}
+header{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding:12px 16px 10px}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h1{font-size:18px;margin:0;font-weight:800}
+.date{font-size:12px;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.tab{border:1.5px solid var(--ink);background:transparent;border-radius:10px;padding:8px 6px;font-weight:700;font-size:14px;line-height:1.15}
+.tab small{display:block;font-weight:500;font-size:11px;opacity:.75}
+.tab[aria-selected=true]{background:var(--ink);color:#fff}
+main{padding:14px 16px 20px;max-width:560px;margin:0 auto}
+.seg{display:flex;background:#e8e3d7;border-radius:10px;padding:3px;gap:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;border-radius:8px;padding:8px 4px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.hint{font-size:13.5px;color:#3b3e45;margin:0 0 12px}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.btn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 10px;transition:transform .18s}
+.item.first{border:2px solid var(--ink)}
+.num{width:38px;height:38px;flex:none;border:2px solid var(--ink);border-radius:4px;display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-weight:600;font-size:17px}
+.item.first .num{background:var(--ink);color:#fff}
+.who{flex:1;min-width:0;border:0;background:none;text-align:left;padding:2px 0}
+.nm{font-weight:700;font-size:15px;line-height:1.25}
+.pt{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:1px}
+.sw{width:9px;height:9px;border-radius:2px;flex:none}
+.info{font-size:11px;font-weight:700;color:var(--accent);margin-left:2px;white-space:nowrap}
+.flag{display:inline-block;font-size:10.5px;font-weight:800;color:var(--warn);background:var(--warnbg);border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+.mv{display:flex;flex-direction:column;gap:3px}
+.mv button{border:0;background:#efebe1;border-radius:7px;width:40px;height:26px;font-size:12px;padding:0}
+.mv button:disabled{opacity:.25}
+.mv button:active{background:#ddd6c6}
+.gl{font-family:"JetBrains Mono",monospace;font-size:10.5px;background:#ece8de;border-radius:3px;padding:0 4px;color:#444}
+.cands{font-size:12px;color:var(--muted);margin-top:3px}
+.ghd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:10px 2px 0}
+.note{font-size:13px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px;color:#3b3e45}
+.note b{color:var(--ink)}
+.cta{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--paper) 70%,rgba(246,243,236,0));z-index:6}
+.cta button{display:block;width:100%;max-width:528px;margin:0 auto;border:0;background:var(--ink);color:#fff;border-radius:14px;padding:15px;font-weight:800;font-size:16px}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,10,15,.45);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.scrim.open{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:88vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheet .bar{width:40px;height:4px;border-radius:2px;background:#ddd;margin:-6px auto 12px}
+.sheet h2{font-size:20px;margin:0 0 2px;line-height:1.2}
+.sheet .sub{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.sheet p{margin:0 0 10px;font-size:15px;line-height:1.5}
+.sheet ul{margin:0 0 10px;padding-left:20px;font-size:14.5px;line-height:1.5}
+.warnbox{background:var(--warnbg);color:#6e2a0a;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px;line-height:1.45}
+.close{display:block;width:100%;margin-top:14px;border:1.5px solid var(--ink);background:#fff;border-radius:12px;padding:11px;font-weight:700}
+/* ballot view */
+.bp{position:fixed;inset:0;z-index:15;background:#fff;overflow:auto;display:none}
+.bp.open{display:block}
+.bphd{position:sticky;top:0;background:#fff;border-bottom:2px solid var(--ink);padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:2}
+.bphd h2{font-size:16px;margin:0;flex:1;line-height:1.2}
+.bphd h2 small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.bphd button{border:1.5px solid var(--ink);background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px}
+.bpbody{padding:14px 16px 40px;max-width:560px;margin:0 auto}
+.bpi{font-size:13px;color:var(--muted);margin:0 0 12px}
+.brow{display:flex;align-items:center;gap:14px;padding:10px 4px;border-bottom:1px solid #eee}
+.bbox{width:50px;height:50px;flex:none;border:2.5px solid var(--ink);display:grid;place-items:center;font-family:"JetBrains Mono",monospace;font-weight:600;font-size:24px}
+.bbox.empty{border-color:#bbb}
+.brow .nm{font-size:16px}
+.bgrp{border:2px solid var(--ink);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.bgrp .gh{background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:6px 10px;letter-spacing:.03em}
+.bgrp .brow{padding:8px 10px}
+.bgrp .bbox{width:42px;height:42px;font-size:20px}
+.line{border-top:4px solid var(--ink);margin:14px 0 8px;font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--muted);padding-top:6px;text-align:center}
+.poshd{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 6px}
+.acc{border:1px solid var(--line);border-radius:10px;margin-bottom:6px;background:#fff}
+.acc summary{list-style:none;padding:11px 12px;font-weight:700;font-size:14.5px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";font-size:18px;font-weight:600;color:var(--muted)}
+.acc[open] summary::after{content:"–"}
+.acc div{padding:0 12px 12px;font-size:14.5px;line-height:1.5}
+.acc[data-empty] summary{color:#9a9a9a;font-weight:600}
+.acc[data-empty] div{color:var(--muted)}
+.src{font-size:11.5px;color:var(--muted);margin:8px 0 0}
+.sheet{position:relative}
+.xbtn{position:sticky;top:0;float:right;margin:-4px -4px 6px 8px;border:1.5px solid var(--ink);background:#fff;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;z-index:2}
+.loc{color:#555;font-style:italic}
+.bpact{display:flex;gap:10px;margin-top:22px}
+.bigbtn{flex:1;border:0;background:var(--ink);color:#fff;border-radius:12px;padding:14px 10px;font-weight:800;font-size:15px}
+.bigbtn.ghost2{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;z-index:30;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.auth{font-size:13px;font-weight:600;color:var(--ink);margin:0 0 8px}
+footer{font-size:12px;color:var(--muted);padding:6px 16px 110px;max-width:560px;margin:0 auto}
+footer a{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><h1>Voting tool</h1><span class="date">Election day Sat 28 Nov 2026</span></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" data-ch="la">Lower house<small>Bendigo West · small ballot</small></button>
+    <button class="tab" data-ch="lc">Upper house<small>Northern Victoria · large ballot</small></button>
+  </div>
+</header>
+<main id="app"></main>
+<footer><p class="auth">Authorised by A Devery, 21 Walker St, Castlemaine VIC 3450.</p>Candidates and ballot order from the VEC ballot draw. Party summaries are short, neutral overviews compiled from party, VEC and news sources: check each party's own material for detail. Your order is saved on this device only.</footer>
+<div class="cta"><button id="show">Show my ballot paper</button></div>
+<div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
+<div class="bp" id="bp"></div>
+
+<script>
+/* ---------- Parties ---------- */
+const P = {
+  ALP:{n:"Australian Labor Party",c:"#d42a2f",
+    s:"<p>Centre-left party and Victoria's governing party since 2014. Ben Carroll leads Labor into this election as Premier.</p>"},
+  LNP:{n:"Liberal / The Nationals",c:"#1d4fa3",
+    s:"<p>The Coalition: the Liberal Party and The Nationals running a single joint ticket in the upper house. Together they form the main centre-right opposition.</p><p>On this ticket, Liberal and Nationals candidates alternate (Brooks, Liberal; Broad, Nationals; and so on).</p>"},
+  LIB:{n:"Liberal Party",c:"#1d4fa3",s:"<p>Centre-right party and the larger partner in the Coalition with The Nationals. In Northern Victoria's upper house it runs on the joint Liberal / The Nationals ticket.</p>"},
+  NAT:{n:"The Nationals",c:"#0f6b45",
+    s:"<p>Centre-right party focused on regional and rural Victoria, in Coalition with the Liberals.</p><ul><li>Headline 2026 policy: a \"Fair Share Guarantee\" (regional Victoria to get 25% of state funding, matching its share of population)</li><li>Supports developing new conventional gas supply</li></ul>"},
+  GRN:{n:"The Greens",c:"#3a9a3f",
+    s:"<p>Left-leaning party focused on climate and the environment, housing and public services. Led in Victoria by Ellen Sandell.</p><ul><li>2026 platform includes a $350m trial of 10 state-owned supermarkets to tackle grocery prices</li></ul>"},
+  AJP:{n:"Animal Justice Party",c:"#0d8291",
+    s:"<p>Party centred on animal welfare and protection. Georgie Purcell has held a Northern Victoria upper-house seat since 2022.</p><ul><li>Campaigns against duck hunting and puppy farming</li><li>Bendigo West candidate Debra Tranter founded the Oscar's Law campaign against puppy farms</li></ul>"},
+  VS:{n:"Victorian Socialists",c:"#9c1f2e",
+    s:"<p>Left-wing socialist party formed in 2018. Focuses on public housing, workers' rights, and taxing large companies and the wealthy to fund public services.</p>"},
+  ON:{n:"One Nation Victoria",c:"#ef6c1f",
+    s:"<p>Victorian branch of Pauline Hanson's One Nation, a right-wing populist party. Rikkie-Lee Tyrrell has held a Northern Victoria upper-house seat since 2022.</p><ul><li>Emphasises cost of living, regional roads and lower immigration</li><li>Opposes the Respectful Relationships schools program</li></ul>"},
+  FF:{n:"Family First",c:"#5b3a8c",
+    s:"<p>Christian, socially conservative party. Led in Victoria by Moira Deeming, a former Liberal MP; national director is Lyle Shelton.</p><ul><li>Platform includes scrapping the Respectful Relationships program and abolishing the Victorian Equal Opportunity and Human Rights Commission</li><li>Mandatory minimum sentences for the worst violent and sexual crimes</li></ul>",
+    lw:"<b>Bendigo West:</b> Family First disendorsed its candidate Christos Harisopoulos on 18 November over his online content. Ballot papers were already printed, so his name still appears with \"Family First\" beside it."},
+  CIT:{n:"Australian Citizens Party",c:"#555b66",
+    s:"<p>Economic-nationalist party, formerly the Citizens Electoral Council. Newly registered in Victoria in 2026.</p><ul><li>Core policy: a public \"Post Bank\" and national bank to fund housing, infrastructure and manufacturing</li><li>Opposes foreign wars and wants an independent foreign policy</li></ul>"},
+  WG:{n:"Kate White (independent group)",c:"#8a8a8a",
+    s:"<p>Kate White is an independent from Bendigo. She formed a group with Alex Green (from Footscray) so that she could appear above the line. Grouping is the only way an independent gets an above-the-line box.</p><ul><li>Campaign centrepiece: \"people's assemblies\" (citizens' juries) so Northern Victorians help set the agenda</li><li>Says she's running for voters tired of the two-party system</li></ul>",
+    w:"The ballot shows <b>no party name</b> beside this group. The VEC declined independents' requests to print the word \"Independent\"."},
+  SFF:{n:"Shooters, Fishers and Farmers",c:"#b98f16",
+    s:"<p>Rural and outdoor-recreation party. Supports hunting and fishing access and farmers' interests, and opposes tighter firearm rules. It previously held a Northern Victoria upper-house seat (2014 to 2018).</p>"},
+  DLP:{n:"Labour DLP (Democratic Labour Party)",c:"#7a4b2a",
+    w:"<b>This is not the Labor Party.</b> \"Labour DLP\" is the Democratic Labour Party, a separate party that split from Labor in 1955. It does not share Labor's policies.",
+    s:"<p>Socially conservative party combining traditional working-class economics with conservative social policy.</p><ul><li>Opposes abortion and assisted dying</li><li>Northern Victoria candidate has promised $35,000 for stay-at-home mums</li><li>Re-registered in Victoria in December 2024</li></ul>"},
+  SAP:{n:"Sustainable Australia Party",c:"#2b6ea6",
+    w:"<b>The name on the ballot is \"Affordable Housing Now – Sustainable Australia Party\".</b> This is the Sustainable Australia Party (formerly the Stable Population Party). It took this new registered name in February 2026.",
+    s:"<p>The party's core policy is slowing population growth, mainly through lower immigration. It links housing affordability, overdevelopment and environmental pressure to population.</p><ul><li>Housing ideas include mandating 10% affordable housing in new developments and stronger renter rights</li><li>Also campaigns against overdevelopment and corruption</li></ul>"},
+  LCV:{n:"Legalise Cannabis Victoria",c:"#55b04a",
+    s:"<p>Party seeking legal adult use and home-growing of cannabis, plus broader drug-law reform. It won two upper-house seats in 2022 (Rachel Payne and David Ettershank).</p>"},
+  IND:{n:"Independent",c:"#8a8a8a",s:"<p>Independent candidate, not in a group, so he can only be numbered below the line. We couldn't find any published platform.</p>"}
+};
+
+/* ---------- Policy positions (compiled 19 Nov 2026; mostly party platforms) ---------- */
+const HEADS=[["cost","Cost of living & budget"],["housing","Housing"],["health","Health"],["crime","Crime & safety"],["climate","Climate & energy"],["regions","Regions, roads & transport"],["edu","Education"],["treaty","First Nations & Treaty"],["social","Social issues"],["integrity","Integrity & democracy"]];
+const COALITION={
+ cost:"Abolish the emergency services tax, schools tax and GP tax within 100 days. Talks up cutting state debt.",
+ housing:"No stamp duty for first-home buyers on homes up to $1 million. A farmland protection bill to shield strategic agricultural land.",
+ health:"$40m Rural Health Workforce Incentive: up to $10,000 for doctors, nurses and allied health workers who take and stay in regional jobs.",
+ crime:"Tougher bail: automatic bail refusal for reoffenders under a \"one strike\" rule.",
+ climate:"Cancel the VNI West transmission line and scrap Labor's gas ban to open new gas supply.",
+ regions:"\"Fair Share Guarantee\": regional Victoria gets 25% of infrastructure spending, matching its population share.",
+ edu:"",
+ treaty:"Repeal Victoria's Treaty within the first 100 days.",
+ social:"",
+ integrity:"Campaigning on alleged CFMEU-linked corruption under Labor."};
+const POS={
+ ALP:{
+  cost:"Public transport fares capped at $30 a week ($15 concession) for two years from 2027. Tolls on CityLink, EastLink and West Gate Tunnel capped at $30 a week. Land tax threshold restored to $300,000. Forecasts four years of surpluses.",
+  housing:"Homes reserved for first-home buyers, built with the Commonwealth (around 25,000). Review of the absentee owner surcharge.",
+  health:"Free public dental clinics, growing to 20. Aims to cut emergency waits by up to 20%. 500 more graduate nurses ($132m). Patient-travel fuel reimbursement raised to 35c/km.",
+  crime:"1,500 more police via a new academy. Statewide \"Jack's Law\" stop-and-search powers by early 2027.",
+  climate:"Coal plants to retire as planned. Pressing ahead with VNI West and the Western Renewables Link.",
+  regions:"24% more V/Line services, 50 local road upgrades, Royalties for the Regions guaranteed, and a $20m antimony processing facility in Northern Victoria.",
+  edu:"$170m for TAFE, including two new campuses and an upgrade at Bendigo. Free kinder for 3- and 4-year-olds continues.",
+  treaty:"Labor's government passed Victoria's first Treaty. The Gellung Warl body began operating in May 2026.",
+  social:"",integrity:""},
+ LNP:COALITION, NAT:COALITION, LIB:COALITION,
+ GRN:{
+  cost:"Permanently free public transport and a two-year rent freeze. Higher land tax (5.3%) on investors holding $5m+ in residential property. $350m trial of 10 state-owned supermarkets.",
+  housing:"Build 88,000 public homes ($4bn to start). At least 30% public and affordable housing in larger developments.",
+  health:"500 more psychologists and psychiatrists.",
+  crime:"Raise the age of criminal responsibility to at least 14.",
+  climate:"100% renewable electricity by 2030. Ban new coal and gas projects.",
+  regions:"$245m for more frequent regional trains and coaches. Community ownership of renewables and transmission. Road maintenance back in public hands.",
+  edu:"Restore $2.4bn in delayed public-school funding.",
+  treaty:"Voted for Victoria's first Treaty and will defend it from repeal. Back full implementation of the Yoorrook Justice Commission's recommendations.",
+  social:"",integrity:""},
+ ON:{
+  cost:"Wind back land tax rises on rentals and small owners, lift the payroll tax threshold, and abolish the 10% stamp duty on insurance.",
+  housing:"Release under-used government land, time limits on approvals, easier granny flats, and a higher foreign-buyer duty.",
+  health:"24/7 emergency, maternity and surgical services in major regional hospitals. Real-time public waiting lists.",
+  crime:"Criminalise flag desecration.",
+  climate:"Scrap net-zero targets and subsidies, back coal plant upgrades, cancel VNI West, lift the nuclear ban, and allow gas connections in new homes.",
+  regions:"Regional road safety and maintenance. Less red tape for irrigators and more drought assistance.",
+  edu:"Scrap the Respectful Relationships program. Phonics-based curriculum, more trade schools, and school vouchers.",
+  treaty:"Scrap the Statewide Treaty and abolish the Gellung Warl body (about $70m a year).",
+  social:"Opposes the Respectful Relationships program. Wants lower immigration.",
+  integrity:"Act on IBAC and Ombudsman recommendations."},
+ AJP:{
+  cost:"",housing:"Passed a law letting retirement-village residents keep their pets.",
+  health:"Subsidised vet care. Helped legalise pill testing.",
+  crime:"Pets recognised as victims in family violence cases. Strengthened the bestiality offence.",
+  climate:"Wildlife conservation and new national parks. No energy policy stated.",
+  regions:"Ban duck shooting, stop commercial kangaroo killing, an inquiry into greyhound racing, and support for wildlife carers.",
+  edu:"",treaty:"",
+  social:"Pushed for better abortion access in regional areas.",
+  integrity:""},
+ VS:{
+  cost:"10% annual wealth tax on billionaires and a 20% bank profits tax to fund services.",
+  housing:"Build at least 15,000 public homes a year for 10 years. Cut rents by 25%, freeze rents for five years, and crack down on land banking.",
+  health:"Fully funded public health and free community clinics. Free childcare.",
+  crime:"Counter far-right extremism.",
+  climate:"Move to 100% publicly owned renewable energy.",
+  regions:"Free, expanded public transport.",
+  edu:"Free public education and universal preschool. End NAPLAN.",
+  treaty:"A treaty that delivers material change, not only symbolic recognition.",
+  social:"",integrity:""},
+ FF:{
+  cost:"Cut state debt and the size of government. Federally: a $30,000 tax-free threshold and income splitting for couples.",
+  housing:"Release more land, cut red tape, extend the first-home grant to existing homes, and limit foreign ownership.",
+  health:"Fund crisis pregnancy centres. Oppose euthanasia.",
+  crime:"Mandatory minimum sentences for the worst violent and sexual crimes. Close drug injecting rooms.",
+  climate:"End net zero and renewable subsidies, keep coal plants open, expand gas, support nuclear, and ban subsidised wind and solar on farmland.",
+  regions:"Property rights, affordable water and viable farming.",
+  edu:"Scrap Respectful Relationships, remove gender-identity material from schools, back-to-basics curriculum, and school chaplains.",
+  treaty:"End Welcome and Acknowledgement of Country ceremonies. Treaty not addressed directly.",
+  social:"Anti-abortion and anti-euthanasia. Ban surrogacy. Ultrasound and a cooling-off period before abortion. Abolish the Equal Opportunity and Human Rights Commission.",
+  integrity:"Freedom of speech, religion and conscience."},
+ DLP:{
+  cost:"Halve payroll tax and then phase it out. Cut fares and vehicle registration. $500 payments to households without rooftop solar.",
+  housing:"Fast-track residential land. Public housing tenants can buy their homes. Double stamp duty for foreign buyers.",
+  health:"25% more doctors, nurses and hospital beds. One-hour maximum emergency waits.",
+  crime:"Mandatory jail for repeat property and violent offenders (75% minimum non-parole). Abolish safe injecting rooms.",
+  climate:"End renewable subsidies, build three new coal power stations, and allow onshore gas including fracking.",
+  regions:"High-speed rail to regional towns, a legal \"right to farm\", and a ban on foreign purchases of farmland.",
+  edu:"Education vouchers, including for home-schoolers.",
+  treaty:"Opposes the Voice to Parliament and race-based preferences. End Acknowledgement of Country.",
+  social:"\"Traditional values\". Opposes abortion and assisted dying. Homemaker allowance of up to $35,000 a year.",
+  integrity:"New offence of \"politically motivated trespass\"."},
+ SAP:{
+  cost:"Resource super-profits tax and a sovereign wealth fund. Higher tax-free threshold.",
+  housing:"Slower migration to ease demand. Lower rents, no stamp duty, more social housing, and 10% affordable housing in new developments.",
+  health:"Basic dental in Medicare and more bulk billing.",
+  crime:"More police, restorative justice, and early intervention on domestic violence.",
+  climate:"Environmental conservation and climate action, with no detailed energy plan.",
+  regions:"A fairer share for regional areas and public transport costs cut by at least 50%.",
+  edu:"Free university and TAFE. Higher teacher pay.",
+  treaty:"",
+  social:"Core platform: a stable population through lower immigration.",
+  integrity:"Campaigns against overdevelopment and corruption."},
+ SFF:{
+  cost:"Stronger competition law on groceries and fuel, and less red tape for small business.",
+  housing:"",
+  health:"Minimum service standards for regional hospitals, including maternity and emergency, and incentives for regional health workers.",
+  crime:"Target illegal guns and organised crime. Roll back recent restrictions on licensed gun owners.",
+  climate:"End net-zero deadlines and energy subsidies. Back coal, gas and nuclear.",
+  regions:"A share of mining royalties back to the regions, a legal \"right to hunt, fish and gather\", and limits on foreign ownership of land and water.",
+  edu:"Literacy and numeracy first, and parity for regional schools.",
+  treaty:"",social:"",integrity:""},
+ LCV:{
+  cost:"",housing:"",
+  health:"Cheaper medicinal cannabis. Fairer drug-driving laws for patients.",
+  crime:"Clear past convictions for non-violent cannabis offences. Decriminalise personal use.",
+  climate:"",
+  regions:"Grow the industrial hemp industry for regional jobs.",
+  edu:"",treaty:"",
+  social:"Legal adult cannabis use and evidence-based drug policy.",
+  integrity:""},
+ CIT:{
+  cost:"A publicly owned state bank through Australia Post outlets. A public State Electricity Commission. Ban the sale of state assets.",
+  housing:"Recreate a State Housing Authority to build 200,000 homes in a decade, plus rent caps and low-interest loans for first-home owners.",
+  health:"",crime:"",
+  climate:"Public ownership of electricity retail and environmental assessments of AI data centres.",
+  regions:"Water, power and transport projects funded by a national bank. Outlaw water speculation.",
+  edu:"Free tertiary education and regional training incentives.",
+  treaty:"",social:"",integrity:""},
+ WG:{
+  cost:"Test big spending on cost, benefit and long-term affordability. \"Get the basics right first.\"",
+  housing:"A long-time \"housing first\" advocate. No specific policy.",
+  health:"Better regional health workforce planning and fewer long trips for care. No specific policy.",
+  crime:"Support for victims and consequences for offenders, plus tackling poverty, housing insecurity and family violence.",
+  climate:"A practical, evidence-based balance between environment and industry. No clear energy-transition position.",
+  regions:"Push for a fairer share of investment in roads, transport, health and education. Flexible regional transport.",
+  edu:"Link schools, TAFE and retraining to regional jobs.",
+  treaty:"",
+  social:"",
+  integrity:"People's Assemblies and Local Hearing Forums. No special donations or deals. Won't preference any party."},
+ IND:{}
+};
+
+/* ---------- Candidates ---------- */
+const LA = [ // ballot order
+  {id:"shalevski",n:"Tayne Shalevski",p:"VS"},{id:"hutchings",n:"David Hutchings",p:"NAT"},
+  {id:"tranter",n:"Debra Tranter",p:"AJP"},{id:"baldwin",n:"Brenton Baldwin",p:"ALP"},
+  {id:"shaw",n:"Liza Shaw",p:"GRN"},{id:"harisopoulos",n:"Christos Harisopoulos",p:"FF",lw:true},
+  {id:"morgan",n:"Ellen Morgan",p:"ON"}];
+const G = [
+  {g:"A",p:"CIT",lbl:"Citizens Party",c:[["Chris Lahy"],["Jeff Davy"]]},
+  {g:"B",p:"WG",lbl:"(no party name shown)",c:[["Kate White"],["Alex Green"]]},
+  {g:"C",p:"ALP",lbl:"Australian Labor Party",c:[["Jaclyn Symes"],["Jana Sarantis"],["Mitch Bridges"],["Natasha Gayfer"],["Greg Olsen"]]},
+  {g:"D",p:"FF",lbl:"Family First",c:[["Chris McCormack"],["Ev Keetelaar"]]},
+  {g:"E",p:"SFF",lbl:"Shooters, Fishers and Farmers Party Victoria",c:[["Ethan Constantinou"],["Geoff Ashby"]]},
+  {g:"F",p:"DLP",lbl:"Labour DLP",c:[["Chae Van Dorssen"],["Sophie De Wit"]]},
+  {g:"G",p:"SAP",lbl:"Affordable Housing Now – Sustainable Australia Party",c:[["Paul Read"],["Cheryl Blacker"]]},
+  {g:"H",p:"ON",lbl:"One Nation Victoria",c:[["Rikkie-Lee Tyrrell"],["Athol Thomas"],["Luke Sorensen"]]},
+  {g:"I",p:"AJP",lbl:"Animal Justice Party",c:[["Georgie Purcell"],["Laurie Levy"]]},
+  {g:"J",p:"LNP",lbl:"Liberal / The Nationals",c:[["Steve Brooks","LIB"],["Gaelle Broad","NAT"],["Amanda Millar","LIB"],["Chad Muller","NAT"],["Brad Hearn","LIB"]]},
+  {g:"K",p:"GRN",lbl:"The Greens",c:[["Cate Sinclair"],["Lucas Maddock"],["Wil Mikelsons"],["Helen Robinson"],["Samantha Bright"]]},
+  {g:"L",p:"LCV",lbl:"Legalise Cannabis Victoria",c:[["Wayne Taylor"],["Scott Williams"]]},
+  {g:"M",p:"VS",lbl:"Victorian Socialists",c:[["Dorothy Lamond"],["Rohan Tyler"]]}];
+const grp = Object.fromEntries(G.map(g=>[g.g,g]));
+const LC = [];
+G.forEach(g=>g.c.forEach((c,i)=>LC.push({id:g.g+(i+1),n:c[0],p:c[1]||g.p,gp:g.p,g:g.g,lbl:c[1]?P[c[1]].n:g.lbl})));
+LC.push({id:"U1",n:"Nick McHugh",p:"IND",gp:"IND",g:null,lbl:"(ungrouped)"});
+const byId0=null;
+const LOC={A1:"Lake Boga",A2:"Numurkah",B1:"Bendigo",B2:"Footscray",C1:"Essendon",C2:"Swan Hill",C3:"Leneva",C4:"Malmsbury",C5:"Castlemaine",D1:"Sedgwick",D2:"Ascot",E1:"Lalor",E2:"Coburg North",F1:"Corryong",F2:"Croydon",G1:"Rushworth",G2:"Ebden",H1:"Shepparton",H2:"Tawonga",H3:"Kerang",I1:"Kyneton",I2:"South Melbourne",J1:"Shepparton",J2:"Bendigo",J3:"Mount Macedon",J4:"West Wodonga",J5:"Benalla",K1:"Glenluce",K2:"Barkers Creek",K3:"Launching Place",K4:"Beechworth",K5:"Benalla",L1:"Castlemaine",L2:"Mooroopna",M1:"Flora Hill",M2:"Eaglehawk",U1:"Mansfield"};
+const locI=id=>LOC[id]?` <i class="loc">(${LOC[id]})</i>`:"";
+const byId = Object.fromEntries([...LA,...LC].map(c=>[c.id,c]));
+
+/* ---------- State (starts from the Build a Ballot plan) ---------- */
+const KEY="myhtv-vic26-v3";
+let NOTES={}; try{NOTES=JSON.parse(localStorage.getItem("myhtv-notes"))||{};}catch(e){}
+const PLAN_LA=["shalevski","tranter","shaw","baldwin","hutchings","morgan","harisopoulos"];
+const PLAN_ATL=["M","K","I","L","G","B","C","A","J","F","E","H","D"];
+const btlFrom = atl => atl.flatMap(g=>grp[g].c.map((_,i)=>g+(i+1))).concat("U1");
+let SAVED=null; try{SAVED=JSON.parse(localStorage.getItem("myhtv-saved"));}catch(e){}
+const defLA=()=>SAVED&&SAVED.la?[...SAVED.la]:[...PLAN_LA];
+const defATL=()=>SAVED&&SAVED.atl?[...SAVED.atl]:[...PLAN_ATL];
+const PLAN_BTL="M2,M1,K2,K1,K3,K4,K5,I1,I2,L1,L2,G1,G2,B1,B2,C5,C4,C1,C2,C3,A1,A2,J1,J3,J5,J2,J4,F1,F2,E2,E1,H1,H2,H3,D1,D2,U1".split(",");
+const defBTL=()=>SAVED&&SAVED.btl?[...SAVED.btl]:[...PLAN_BTL];
+let S={ch:"la",mode:"atl",la:defLA(),atl:defATL(),btl:defBTL()};
+try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.la&&s.atl&&s.btl) S={...S,...s};}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const sw=p=>`<span class="sw" style="background:${P[p].c}"></span>`;
+const FL={DLP:"NOT LABOR",SAP:"RENAMED",WG:"NO PARTY LABEL"};
+const flag=p=>FL[p]?`<span class="flag">${FL[p]}</span>`:"";
+
+function arr(){return S.ch==="la"?S.la:S.mode==="atl"?S.atl:S.btl}
+
+/* ---------- Render ---------- */
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.ch===S.ch));
+  let h="";
+  if(S.ch==="la"){
+    h+=`<p class="hint">Put your candidates in order with ▲▼. <b>Tap a name</b> for a party summary and its policies. You must number <b>every box</b> on the small ballot.</p>`;
+  } else {
+    h+=`<div class="seg"><button data-mode="atl" aria-pressed="${S.mode==="atl"}">Above the line</button><button data-mode="btl" aria-pressed="${S.mode==="btl"}">Below the line</button></div>`;
+    h+= S.mode==="atl"
+      ? `<p class="hint">Order the <b>parties and groups</b>. Number at least 5 boxes above the line; you can number them all. Your vote flows through each group's candidates in the order the party listed them. <b>Tap a name</b> for a summary and policies.</p>`
+      : `<p class="hint">Order <b>individual candidates</b>, across any parties. Number at least 5 below the line. Leave the boxes above the line blank. <b>Tap a name</b> for a summary and policies.</p>
+         <div class="note">This list follows your above-the-line order. Fine-tune it here (for example, move one candidate ahead of their running mate). Changes here don't affect above the line. If you reorder above the line later, this list resets to match.</div>`;
+  }
+  h+=`<div class="list">`;
+  const a=arr();
+  a.forEach((k,i)=>{
+    let nm,sub,p,extra="";
+    if(S.ch==="lc"&&S.mode==="atl"){const g=grp[k];p=g.p;nm=P[g.p].n;sub=`<span class="gl">${g.g}</span> ${esc(g.lbl)}`;extra=`<div class="cands">${g.c.map(c=>esc(c[0])).join(" → ")}</div>`;}
+    else{const c=byId[k];p=c.p;nm=c.n;sub=S.ch==="la"?esc(P[c.p].n):`${c.g?`<span class="gl">${c.g}</span> `:""}<span>${esc(c.lbl)}${locI(k)}</span>`;}
+    h+=`<div class="item ${i===0?"first":""}"><span class="num">${i+1}</span>
+      <button class="who" data-info="${k}"><div class="nm">${esc(nm)}${flag(S.ch==="lc"&&S.mode!=="atl"?byId[k].gp:p)}${S.ch==="la"&&byId[k].lw?'<span class="flag">DISENDORSED</span>':""}</div>
+      <div class="pt">${sw(p)}${sub}<span class="info">ⓘ</span></div>${extra}${(()=>{const np=S.ch==="lc"&&S.mode!=="atl"?byId[k].gp:p; return NOTES[np]?`<div class="cands" style="color:var(--ink);font-style:italic">“${esc(NOTES[np])}”</div>`:"";})()}</button>
+      <span class="mv"><button data-mv="${k}" data-d="-1" ${i===0?"disabled":""} aria-label="Move up">▲</button><button data-mv="${k}" data-d="1" ${i===a.length-1?"disabled":""} aria-label="Move down">▼</button></span></div>`;
+  });
+  h+=`</div>`;
+  if(S.ch==="lc"&&S.mode==="atl") h+=`<p class="hint" style="margin-top:12px">Nick McHugh is the only ungrouped candidate, so he has no box above the line. To number him, vote below the line.</p>`;
+  h+=`<div class="tools" style="margin-top:14px"><button class="btn" data-act="savemine" style="border-color:var(--ink);color:var(--ink)">Save my order</button><button class="btn" data-act="share">Share my order</button>${S.ch==="lc"&&S.mode==="btl"?`<button class="btn" data-act="fromatl">Match my above-the-line order again</button>`:`<button class="btn" data-act="plan">Reset to my saved order</button>`}</div>`;
+  document.getElementById("app").innerHTML=h;
+}
+
+/* ---------- Party summary sheet ---------- */
+function openInfo(k){
+  let title,p,line,cands="";
+  if(S.ch==="lc"&&S.mode==="atl"){const g=grp[k];p=g.p;title=P[p].n;line=`Group ${g.g} · on the ballot as “${esc(g.lbl)}”`;cands=`<p style="font-size:13.5px;color:#555"><b>Candidates, in party order:</b> ${g.c.map(c=>esc(c[0])+(c[1]?` (${P[c[1]].n})`:"")).join(", ")}</p>`;}
+  else{const c=byId[k];title=c.n;p=S.ch==="lc"?c.gp:c.p;line=S.ch==="la"?`${P[c.p].n} · Bendigo West`:(c.g?`Group ${c.g} · on the ballot as “${esc(c.lbl)}”`:"Ungrouped · below the line only")+(LOC[k]?` · lives in ${LOC[k]}`:"");}
+  const q=P[p];
+  const lw = (S.ch==="la"&&byId[k]&&byId[k].lw)||(S.ch==="lc"&&false) ? `<div class="warnbox">${q.lw}</div>`:"";
+  document.getElementById("sheet").innerHTML=`<div class="bar"></div><button class="xbtn" data-close aria-label="Close">Close ✕</button><h2>${esc(title)}</h2><div class="sub">${sw(p)}${line}</div>
+    ${q.w?`<div class="warnbox">${q.w}</div>`:""}${lw}${S.ch==="la"||S.mode==="btl"?`<p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 6px">About ${esc(q.n)}</p>`:""}${q.s}${cands}
+    ${posHtml(p)}
+    <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 6px">My notes on ${esc(q.n)}</label>
+    <textarea data-note="${p}" rows="3" placeholder="Your own take, saved on this phone" style="width:100%;font:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:10px">${esc(NOTES[p]||"")}</textarea>
+    <button class="close" data-close>Close</button>`;
+  document.getElementById("scrim").classList.add("open");
+}
+
+function posHtml(p){
+  const d=POS[p]||{};
+  const any=HEADS.some(([k])=>d[k]);
+  let h=`<div class="poshd">Policies &amp; positions</div>`;
+  if(!any) return h+`<p style="color:var(--muted);font-size:14px">No published positions found.</p>`;
+  h+=HEADS.map(([k,t])=>`<details class="acc"${d[k]?"":" data-empty"}><summary>${t}</summary><div>${d[k]?esc(d[k]):"No position found."}</div></details>`).join("");
+  return h+`<p class="src">Mostly from party platforms and candidates' own statements, compiled 19 Nov 2026 via The Public Ledger. Check each party's website for full detail.</p>`;
+}
+function showTxt(txt,ttl,hint){document.getElementById("sheet").innerHTML=`<div class="bar"></div><button class="xbtn" data-close>Close ✕</button><h2>${ttl||"Your order"}</h2><p class="hint">${hint||"Select all and copy this text."}</p><textarea readonly rows="7" style="width:100%;font:13px monospace;border:1.5px solid var(--line);border-radius:10px;padding:10px">${esc(txt)}</textarea><button class="close" data-close>Close</button>`;document.getElementById("scrim").classList.add("open");}
+
+/* ---------- Share link: order packed into the #hash ---------- */
+const SITE_URL="https://claude.ai/artifact/4eRq5KRNykhg8mDjj7LP5S"; // change if you host it elsewhere
+const SYM="0123456789abcdefghijklmnopqrstuvwxyzA";
+const LCIDS=LC.map(c=>c.id), LAIDS=LA.map(c=>c.id), GIDS=G.map(g=>g.g);
+function encode(){
+  return "v1-"+S.la.map(id=>SYM[LAIDS.indexOf(id)]).join("")+"-"+S.atl.join("")+"-"+S.btl.map(id=>SYM[LCIDS.indexOf(id)]).join("");
+}
+function decode(h){
+  const m=/^v1-([0-6]{7})-([A-M]{1,13})-([0-9a-zA]{1,37})$/.exec(h); if(!m) return null;
+  const la=[...m[1]].map(c=>LAIDS[SYM.indexOf(c)]), atl=[...m[2]], btl=[...m[3]].map(c=>LCIDS[SYM.indexOf(c)]);
+  if(new Set(la).size!==7||new Set(atl).size!==atl.length||new Set(btl).size!==btl.length||btl.includes(undefined)) return null;
+  return {la,atl,btl};
+}
+function shareUrl(){
+  const base = (window.top===window) ? location.origin+location.pathname : SITE_URL;
+  return base+"#"+encode();
+}
+function loadFromHash(){
+  const o=decode(location.hash.replace(/^#/,"")); if(!o) return false;
+  S.la=o.la; S.atl=o.atl; S.btl=o.btl; save(); return true;
+}
+async function doShare(btn){
+  const url=shareUrl();
+  try{ location.hash=encode(); }catch(_){}
+  try{
+    if(navigator.share && window.top===window){ await navigator.share({title:"Voting tool",url}); return; }
+  }catch(_){}
+  try{ await navigator.clipboard.writeText(url); const o=btn.textContent; btn.textContent="Link copied ✓"; setTimeout(()=>btn.textContent=o,2000); }
+  catch(_){ showTxt(url, "Your share link", "Select all and copy this link."); }
+}
+
+/* ---------- Save as image (both ballots) ---------- */
+async function makeImage(){
+  try{ await document.fonts.ready; }catch(_){}
+  const W=1080, pad=56, rowH=96, boxS=64;
+  const rows=[]; // {type,...}
+  rows.push({t:"title",a:"My ballot",b:"Victorian state election · Saturday 28 November 2026"});
+  rows.push({t:"head",a:"Bendigo West · small ballot (lower house)",b:"Number every box"});
+  LA.forEach(c=>rows.push({t:"row",n:S.la.indexOf(c.id)+1,a:c.n.split(" ").slice(-1)[0].toUpperCase()+", "+c.n.split(" ").slice(0,-1).join(" "),b:P[c.p].n}));
+  if(S.mode==="atl"){
+    rows.push({t:"head",a:"Northern Victoria · large ballot · ABOVE the line",b:"Leave every box below the line blank"});
+    G.forEach(g=>rows.push({t:"row",n:S.atl.indexOf(g.g)+1||"",a:g.g+"  "+g.lbl,b:g.c.map(c=>c[0]).join(", ")}));
+  } else {
+    rows.push({t:"head",a:"Northern Victoria · large ballot · BELOW the line",b:"Leave the boxes above the line blank"});
+    G.forEach(g=>{rows.push({t:"grp",a:g.g+" · "+g.lbl});
+      g.c.forEach((c,i)=>{const id=g.g+(i+1);rows.push({t:"row",n:S.btl.indexOf(id)+1||"",a:c[0],b:(c[1]?P[c[1]].n:g.lbl)+(LOC[id]?"  ("+LOC[id]+")":"")});});});
+    rows.push({t:"grp",a:"Ungrouped"}); rows.push({t:"row",n:S.btl.indexOf("U1")+1||"",a:"Nick McHugh",b:"Independent  (Mansfield)"});
+  }
+  const hOf=r=>r.t==="title"?150:r.t==="head"?120:r.t==="grp"?62:rowH;
+  const H=pad+rows.reduce((a,r)=>a+hOf(r),0)+90;
+  const cv=document.createElement("canvas"); cv.width=W; cv.height=H;
+  const x=cv.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,W,H);
+  const F=(w,s)=>`${w} ${s}px "Public Sans", system-ui, sans-serif`;
+  const fit=(txt,max,font)=>{x.font=font; if(x.measureText(txt).width<=max) return txt; while(txt.length>3&&x.measureText(txt+"…").width>max) txt=txt.slice(0,-1); return txt+"…";};
+  let y=pad;
+  rows.forEach(r=>{
+    const h=hOf(r);
+    if(r.t==="title"){ x.fillStyle="#16181d"; x.font=F(800,48); x.fillText(r.a,pad,y+52); x.fillStyle="#6a6e78"; x.font=F(500,26); x.fillText(r.b,pad,y+96); }
+    else if(r.t==="head"){ x.fillStyle="#16181d"; x.fillRect(pad,y+16,W-pad*2,6); x.font=F(800,32); x.fillText(fit(r.a,W-pad*2,F(800,32)),pad,y+66); x.fillStyle="#b5481a"; x.font=F(700,24); x.fillText(r.b,pad,y+102); }
+    else if(r.t==="grp"){ x.fillStyle="#f1ede3"; x.fillRect(pad,y+8,W-pad*2,46); x.fillStyle="#16181d"; x.font=F(700,24); x.fillText(fit(r.a,W-pad*2-24,F(700,24)),pad+14,y+40); }
+    else { const by=y+(h-boxS)/2; x.strokeStyle=r.n?"#16181d":"#bbbbbb"; x.lineWidth=4; x.strokeRect(pad+2,by,boxS,boxS);
+      if(r.n){ x.fillStyle="#16181d"; x.font=`600 ${String(r.n).length>1?28:36}px "JetBrains Mono", ui-monospace, monospace`; x.textAlign="center"; x.fillText(String(r.n),pad+2+boxS/2,by+boxS/2+13); x.textAlign="left"; }
+      const tx=pad+boxS+28, mw=W-tx-pad; x.fillStyle="#16181d"; x.font=F(700,30); x.fillText(fit(r.a,mw,F(700,30)),tx,y+42); x.fillStyle="#6a6e78"; x.font=F(500,23); x.fillText(fit(r.b,mw,F(500,23)),tx,y+76);
+      x.fillStyle="#eeeeee"; x.fillRect(tx,y+h-2,W-tx-pad,2); }
+    y+=h;
+  });
+  x.fillStyle="#6a6e78"; x.font=F(500,22); x.fillText("Candidates shown in ballot-paper order. Check against your ballot paper.",pad,y+40);
+  return cv;
+}
+async function doImage(){
+  const cv=await makeImage();
+  const url=cv.toDataURL("image/png");
+  // Inside the Claude app/site: hand the file to Claude's save (share sheet on iPhone)
+  try{
+    if(window.claude && window.claude.use){
+      const dl=await window.claude.use("downloads");
+      if(dl){
+        const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+        try{ await dl.save({filename:"my-ballot.png",data:blob}); return; }
+        catch(e){ if(e&&e.code==="declined") return; }
+      }
+    }
+  }catch(_){}
+  // Try the phone's share sheet (lets iPhone users tap "Save Image")
+  try{
+    if(navigator.canShare && window.top===window){
+      const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+      const file=new File([blob],"my-ballot.png",{type:"image/png"});
+      if(navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:"Voting tool"}); return; }
+    }
+  }catch(e){ if(e&&e.name==="AbortError") return; }
+  document.getElementById("sheet").innerHTML=`<div class="bar"></div><button class="xbtn" data-close>Close ✕</button><h2>Your ballot image</h2>
+    <p class="hint"><b>On iPhone:</b> press and hold the image, then tap <b>Save to Photos</b>. On a computer, use the download button.</p>
+    <img src="${url}" alt="My ballot" style="width:100%;border:1px solid var(--line);border-radius:10px;display:block">
+    ${window.top===window?`<a class="close" href="${url}" download="my-ballot.png" style="text-align:center;text-decoration:none;color:inherit">Download image</a>`:""}
+    <button class="close" data-close>Close</button>`;
+  document.getElementById("scrim").classList.add("open");
+}
+
+/* ---------- Ballot paper view ---------- */
+function showBallot(){
+  let h=`<div class="bphd"><h2>`;
+  if(S.ch==="la"){
+    h+=`Bendigo West<small>Small ballot paper · lower house</small></h2><button data-closebp>Done</button></div><div class="bpbody">
+    <p class="bpi">Candidates are shown in the order they appear on your ballot paper. Copy each number into its box.</p>`;
+    LA.forEach(c=>{const n=S.la.indexOf(c.id)+1;h+=`<div class="brow"><span class="bbox">${n}</span><div><div class="nm">${esc(c.n.split(" ").slice(-1)[0].toUpperCase())}, ${esc(c.n.split(" ").slice(0,-1).join(" "))}</div><div class="pt">${esc(P[c.p].n)}</div></div></div>`;});
+  } else if(S.mode==="atl"){
+    h+=`Northern Victoria<small>Large ballot paper · ABOVE the line</small></h2><button data-closebp>Done</button></div><div class="bpbody">
+    <p class="bpi">Groups are shown in ballot-paper order (A to M, left to right on the paper). Write these numbers in the boxes <b>above the thick black line</b>. Leave everything below the line blank.</p>`;
+    G.forEach(g=>{const n=S.atl.indexOf(g.g)+1;h+=`<div class="brow"><span class="bbox">${n||""}</span><div><div class="nm"><span class="gl">${g.g}</span> ${esc(g.lbl)}</div><div class="pt">${g.c.map(c=>esc(c[0])).join(", ")}</div></div></div>`;});
+    h+=`<div class="line">THICK BLACK LINE · LEAVE BELOW BLANK</div>`;
+  } else {
+    h+=`Northern Victoria<small>Large ballot paper · BELOW the line</small></h2><button data-closebp>Done</button></div><div class="bpbody">
+    <p class="bpi">Leave the boxes above the line blank. Below the line, candidates are grouped in ballot order (A to M, then ungrouped). Copy each number into the box beside the candidate.</p><div class="line">BELOW THE LINE</div>`;
+    G.forEach(g=>{h+=`<div class="bgrp"><div class="gh">${g.g} · ${esc(g.lbl)}</div>`;
+      g.c.forEach((c,i)=>{const id=g.g+(i+1),n=S.btl.indexOf(id)+1;h+=`<div class="brow"><span class="bbox ${n?"":"empty"}">${n||""}</span><div><div class="nm">${esc(c[0])}</div><div class="pt">${esc(c[1]?P[c[1]].n:g.lbl)}${locI(id)}</div></div></div>`;});
+      h+=`</div>`;});
+    const n=S.btl.indexOf("U1")+1;
+    h+=`<div class="bgrp"><div class="gh">Ungrouped</div><div class="brow"><span class="bbox ${n?"":"empty"}">${n||""}</span><div><div class="nm">Nick McHugh</div><div class="pt">Independent${locI("U1")}</div></div></div></div>`;
+  }
+  h+=`<div class="bpact"><button class="bigbtn" data-act="img">Save as image</button><button class="bigbtn ghost2" data-act="share">Copy share link</button></div>
+  <p class="bpi" style="margin-top:10px;color:var(--ink);font-weight:600">Authorised by A Devery, 21 Walker St, Castlemaine VIC 3450.</p><p class="bpi">The image includes both ballots, so you have everything for the booth in one picture. The share link opens this page with your order already filled in.</p>`;
+  h+=`</div>`;
+  const bp=document.getElementById("bp"); bp.innerHTML=h; bp.classList.add("open"); bp.scrollTop=0;
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("input",e=>{const p=e.target.dataset.note; if(p!==undefined){NOTES[p]=e.target.value; try{localStorage.setItem("myhtv-notes",JSON.stringify(NOTES))}catch(_){} render();}});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,[data-close]");
+  if(e.target.id==="scrim"){document.getElementById("scrim").classList.remove("open");return;}
+  if(!t) return; const d=t.dataset;
+  if(t.id==="show"){showBallot();return;}
+  if(d.closebp!==undefined){document.getElementById("bp").classList.remove("open");return;}
+  if(d.close!==undefined){document.getElementById("scrim").classList.remove("open");return;}
+  if(d.info){openInfo(d.info);return;}
+  if(d.ch){S.ch=d.ch;}
+  else if(d.mode){S.mode=d.mode;}
+  else if(d.mv){const a=arr(),i=a.indexOf(d.mv),j=i+ +d.d; if(j>=0&&j<a.length){[a[i],a[j]]=[a[j],a[i]];} if(S.ch==="lc"&&S.mode==="atl") S.btl=btlFrom(S.atl);}
+  else if(d.act==="share"){doShare(t);return;}
+  else if(d.act==="img"){t.textContent="Making image…";doImage().finally(()=>t.textContent="Save as image");return;}
+  else if(d.act==="export"){const txt="MY ORDER\nLA: "+S.la.join(",")+"\nATL: "+S.atl.join(",")+"\nBTL: "+S.btl.join(",");
+    const done=()=>{t.textContent="Copied ✓";setTimeout(()=>t.textContent="Copy my order",2000)};
+    try{navigator.clipboard.writeText(txt).then(done,()=>showTxt(txt));}catch(_){showTxt(txt)} return;}
+  else if(d.act==="fromatl"){S.btl=btlFrom(S.atl);}
+  else if(d.act==="plan"){ if(S.ch==="la") S.la=defLA(); else if(S.mode==="atl"){ S.atl=defATL(); S.btl=defBTL();} else S.btl=btlFrom(S.atl); }
+  else if(d.act==="savemine"){ SAVED={la:[...S.la],atl:[...S.atl],btl:[...S.btl]}; try{localStorage.setItem("myhtv-saved",JSON.stringify(SAVED));t.textContent="Saved ✓";setTimeout(()=>t.textContent="Save my order",2000);}catch(_){t.textContent="Couldn't save on this device";} return; }
+  else return;
+  save(); render();
+  document.getElementById("show").textContent = S.ch==="la" ? "Show my ballot paper" : S.mode==="atl" ? "Show my ballot paper (above the line)" : "Show my ballot paper (below the line)";
+});
+const fromLink=loadFromHash();
+render();
+if(fromLink){ const n=document.createElement("div"); n.className="toast"; n.textContent="Loaded the order from your share link"; document.body.appendChild(n); setTimeout(()=>n.remove(),3500); }
+document.getElementById("show").textContent = S.ch==="la" ? "Show my ballot paper" : S.mode==="atl" ? "Show my ballot paper (above the line)" : "Show my ballot paper (below the line)";
+</script>
+</body>
+</html>
