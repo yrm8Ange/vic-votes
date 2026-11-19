@@ -103,7 +103,8 @@ h1{font-weight:700;letter-spacing:-.01em}
 .btn,.xbtn,.close,.bphd button,.seg button,.poshd,.offhd,.flag{font-family:var(--mono)}
 .btn{color:var(--ink)!important;border-color:var(--ink)!important}
 .seg button{color:var(--ink)}
-.cta button,.bigbtn{font-family:var(--head);font-weight:600;letter-spacing:0;font-size:16px;text-transform:none}
+.cta button,.bigbtn{font-family:var(--mono);font-weight:500;letter-spacing:.1em;font-size:15px;text-transform:none;border-radius:0;white-space:nowrap}
+.bigbtn.ghost2{border-width:1.5px}
 .btn{font-weight:500}
 .info{color:var(--muted)}
 footer{font-size:12px;color:var(--muted);padding:6px 16px 110px;max-width:560px;margin:0 auto}
@@ -527,7 +528,7 @@ function showBallot(){
     const n=S.btl.indexOf("U1")+1;
     h+=`<div class="bgrp"><div class="gh">Ungrouped</div><div class="brow"><span class="bbox ${n?"":"empty"}">${n||""}</span><div><div class="nm">Nick McHugh</div><div class="pt">Independent${locI("U1")}</div></div></div></div>`;
   }
-  h+=`<div class="bpact"><button class="bigbtn" data-act="img">Save as image</button><button class="bigbtn ghost2" data-act="share">Copy share link</button></div>
+  h+=`<div class="bpact"><button class="bigbtn" data-act="img">Save image</button><button class="bigbtn ghost2" data-act="share">Share link</button></div>
   <p class="bpi" style="margin-top:10px;color:var(--ink);font-weight:600">Authorised by A Devery, 21 Walker St, Castlemaine VIC 3450.</p><p class="bpi">The image includes both ballots, so you have everything for the booth in one picture. The share link opens this page with your order already filled in.</p>`;
   h+=`</div>`;
   const bp=document.getElementById("bp"); bp.innerHTML=h; bp.classList.add("open"); bp.scrollTop=0;
@@ -547,7 +548,7 @@ document.addEventListener("click",e=>{
   else if(d.mode){S.mode=d.mode;}
   else if(d.mv){const a=arr(),i=a.indexOf(d.mv),j=i+ +d.d; if(j>=0&&j<a.length){[a[i],a[j]]=[a[j],a[i]];} if(S.ch==="lc"&&S.mode==="atl") S.btl=btlFrom(S.atl);}
   else if(d.act==="share"){doShare(t);return;}
-  else if(d.act==="img"){t.textContent="Making image…";doImage().finally(()=>t.textContent="Save as image");return;}
+  else if(d.act==="img"){t.textContent="Making…";doImage().finally(()=>t.textContent="Save image");return;}
   else if(d.act==="export"){const txt="MY ORDER\nLA: "+S.la.join(",")+"\nATL: "+S.atl.join(",")+"\nBTL: "+S.btl.join(",");
     const done=()=>{t.textContent="Copied ✓";setTimeout(()=>t.textContent="Copy my order",2000)};
     try{navigator.clipboard.writeText(txt).then(done,()=>showTxt(txt));}catch(_){showTxt(txt)} return;}
@@ -556,12 +557,12 @@ document.addEventListener("click",e=>{
   else if(d.act==="savemine"){ SAVED={la:[...S.la],atl:[...S.atl],btl:[...S.btl]}; try{localStorage.setItem("myhtv-saved",JSON.stringify(SAVED));t.textContent="Saved ✓";setTimeout(()=>t.textContent="Save my order",2000);}catch(_){t.textContent="Couldn't save on this device";} return; }
   else return;
   save(); render();
-  document.getElementById("show").textContent = S.ch==="la" ? "Show my ballot paper" : S.mode==="atl" ? "Show my ballot paper (above the line)" : "Show my ballot paper (below the line)";
+  document.getElementById("show").textContent = "Show my ballot paper";
 });
 const fromLink=loadFromHash();
 render();
 if(fromLink){ const n=document.createElement("div"); n.className="toast"; n.textContent="Loaded the order from your share link"; document.body.appendChild(n); setTimeout(()=>n.remove(),3500); }
-document.getElementById("show").textContent = S.ch==="la" ? "Show my ballot paper" : S.mode==="atl" ? "Show my ballot paper (above the line)" : "Show my ballot paper (below the line)";
+document.getElementById("show").textContent = "Show my ballot paper";
 </script>
 </body>
 </html>
